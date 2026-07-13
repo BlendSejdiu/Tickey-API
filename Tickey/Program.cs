@@ -1,9 +1,14 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 using Tickey.Endpoints;
 using Tickey.Middleware;
 using Tickey.Sevices;
@@ -14,6 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddOpenApi();
+builder.Services.AddLogging();
 
 // db
 builder.Services.AddHealthChecks().AddNpgSql(builder.Configuration.GetConnectionString("TickeyDB")!);
@@ -35,7 +41,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    .AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"))
+    .AddPolicy("UserOnly", policy => policy.RequireRole("User"));
 
 // services
 builder.Services.AddScoped<TokenService>();
@@ -64,5 +71,6 @@ app.MapHealthChecks("/health", new HealthCheckOptions
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
+// ratelimiting middleware, aspire for metrics. Work more on events and tickets. Add tests and more methods.
 
 app.Run();

@@ -7,7 +7,7 @@ public static class UserEndpoints
 {
     public static void MapAuthEndpoints(this WebApplication app)
     {
-        app.MapPost("/users/register", async (UserDTO userDto, AppDbContext db) =>
+        app.MapPost("/users/register", async (UserDTO userDto, AppDbContext db, ILogger logger) =>
         {
             if (await db.Users.AnyAsync(u => u.Email == userDto.Email))
                 return Results.BadRequest(new { Message = "Email already exists." });
@@ -23,10 +23,13 @@ public static class UserEndpoints
             user.Email = userDto.Email;
             user.PasswordHash = hashedPassword;
             // temporary role
-            user.Role = user.Email == "admin@gmail.com" ? "Admin" : user.Role;
+            user.Role = user.Email == "admin@gmail.com" ? "Admin" : "User";
 
             db.Users.Add(user);
             await db.SaveChangesAsync();
+
+            logger.LogInformation("New user registered: {Username} ({Email})", user.Username, user.Email);
+
             return Results.Created($"/users/{user.Id}", new { user.Id, user.Username, user.Email });
 
         }).WithName("RegisterUser").WithTags("Users").WithSummary("Register a new user");

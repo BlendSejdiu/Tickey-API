@@ -3,9 +3,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Tickey.Data;
-using Tickey.Models.Domain;
-using Tickey.Models.DTO.UserDTOs;
 
 namespace Tickey.Sevices;
 
