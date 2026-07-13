@@ -44,7 +44,20 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"))
     .AddPolicy("UserOnly", policy => policy.RequireRole("User"));
 
+builder.Services.AddRateLimiter(options =>
+{ 
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddFixedWindowLimiter("Fixed", opt =>
+    {
+        opt.PermitLimit = 10;
+        opt.Window = TimeSpan.FromSeconds(30);     
+    });
+
+});
+
 // services
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<AuthService>();
 
@@ -59,6 +72,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseRateLimiter();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -71,6 +86,6 @@ app.MapHealthChecks("/health", new HealthCheckOptions
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
-// ratelimiting middleware, aspire for metrics. Work more on events and tickets. Add tests and more methods.
+// ratelimiting middleware, aspire for metrics. Work more on events and ticket models. Add tests and more methods.
 
 app.Run();

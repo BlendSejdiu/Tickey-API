@@ -16,7 +16,7 @@ public static class TicketEndpoints
 
             return Results.Ok(tickets);
 
-        }).RequireAuthorization("UserOnly").WithName("GetAllTickets").WithTags("Tickets").WithSummary("Get all tickets");
+        }).RequireRateLimiting("Fixed").RequireAuthorization("UserOnly").WithName("GetAllTickets").WithTags("Tickets").WithSummary("Get all tickets");
 
         app.MapGet("/tickets/{id:guid}", async (Guid id, AppDbContext db, CancellationToken cancellationToken) =>
         {
@@ -32,11 +32,11 @@ public static class TicketEndpoints
 
             return ticket is not null? Results.Ok(ticket): Results.NotFound();
 
-        }).RequireAuthorization("UserOnly").WithName("GetTicketById").WithTags("Tickets").WithSummary("Get a ticket by ID");
+        }).RequireRateLimiting("Fixed").RequireAuthorization("UserOnly").WithName("GetTicketById").WithTags("Tickets").WithSummary("Get a ticket by ID");
 
-        app.MapPost("/tickets/buy", async (BuyTicketDTO dto, AppDbContext db, ILogger logger) =>
+        app.MapPost("/tickets/buy", async (BuyTicketDTO dto, AppDbContext db, CancellationToken cancellationToken, ILogger<TicketEndpointsLogger> logger) =>
         {
-            var ticket = await db.Tickets.FirstOrDefaultAsync(t => t.Id == dto.TicketId);
+            var ticket = await db.Tickets.FirstOrDefaultAsync(t => t.Id == dto.TicketId, cancellationToken);
             if (ticket is null)
                 return Results.NotFound("Ticket not found.");
 
@@ -50,11 +50,11 @@ public static class TicketEndpoints
             logger.LogInformation("Ticket with ID: {TicketId} sold. Quantity sold: {QuantitySold}", ticket.Id, dto.Quantity);
 
             return Results.Ok("Ticket purchased successfully.");
-        }).RequireAuthorization("UserOnly").WithName("BuyTicket").WithTags("Tickets").WithSummary("Buy a ticket");
+        }).RequireRateLimiting("Fixed").RequireAuthorization("UserOnly").WithName("BuyTicket").WithTags("Tickets").WithSummary("Buy a ticket");
 
-        app.MapPost("/tickets", async (CreateTicketDTO dto, AppDbContext db, ILogger logger) =>
+        app.MapPost("/tickets", async (CreateTicketDTO dto, AppDbContext db, CancellationToken cancellationToken, ILogger<TicketEndpointsLogger> logger) =>
         {
-            var @event = await db.Events.FirstOrDefaultAsync(e => e.Id == dto.EventId);
+            var @event = await db.Events.FirstOrDefaultAsync(e => e.Id == dto.EventId, cancellationToken);
 
             if (@event is null)
                 return Results.NotFound("EventId not found.");
@@ -77,7 +77,7 @@ public static class TicketEndpoints
                 CreatedAt = DateTime.UtcNow,
             };
 
-            await db.Tickets.AddAsync(ticket);
+            await db.Tickets.AddAsync(ticket, cancellationToken);
             await db.SaveChangesAsync();
 
             logger.LogInformation("Ticket created with ID: {TicketId} for Event ID: {EventId}", ticket.Id, ticket.EventId);
@@ -92,10 +92,10 @@ public static class TicketEndpoints
 
             return Results.Created($"/tickets/{ticket.Id}", response);
 
-        }).RequireAuthorization("AdminOnly").WithName("CreateTicket").WithTags("Tickets").WithSummary("Create a new ticket");
+        }).RequireRateLimiting("Fixed").RequireAuthorization("AdminOnly").WithName("CreateTicket").WithTags("Tickets").WithSummary("Create a new ticket");
 
 
-        app.MapPut("/tickets/{id:guid}", async (Guid id, TicketDTO dto, AppDbContext db, ILogger logger) =>
+        app.MapPut("/tickets/{id:guid}", async (Guid id, TicketDTO dto, AppDbContext db, ILogger<TicketEndpointsLogger> logger) =>
         {
             var ticket = await db.Tickets.FindAsync(id);
 
@@ -125,10 +125,10 @@ public static class TicketEndpoints
 
             return Results.Ok(response);
 
-        }).RequireAuthorization("AdminOnly").WithName("UpdateTicket").WithTags("Tickets").WithSummary("Update a ticket by ID");
+        }).RequireRateLimiting("Fixed").RequireAuthorization("AdminOnly").WithName("UpdateTicket").WithTags("Tickets").WithSummary("Update a ticket by ID");
 
 
-        app.MapDelete("/tickets/{id:guid}", async (Guid id, AppDbContext db, ILogger logger) =>
+        app.MapDelete("/tickets/{id:guid}", async (Guid id, AppDbContext db, ILogger<TicketEndpointsLogger> logger) =>
         {
             var ticket = await db.Tickets.FindAsync(id);
 
@@ -142,6 +142,10 @@ public static class TicketEndpoints
 
             return Results.NoContent();
 
-        }).RequireAuthorization("AdminOnly").WithName("DeleteTicket").WithTags("Tickets").WithSummary("Delete a ticket by ID");
+        }).RequireRateLimiting("Fixed").RequireAuthorization("AdminOnly").WithName("DeleteTicket").WithTags("Tickets").WithSummary("Delete a ticket by ID");
+    }
+
+    internal sealed class TicketEndpointsLogger
+    {
     }
 }

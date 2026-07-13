@@ -7,7 +7,7 @@ public static class UserEndpoints
 {
     public static void MapAuthEndpoints(this WebApplication app)
     {
-        app.MapPost("/users/register", async (UserDTO userDto, AppDbContext db, ILogger logger) =>
+        app.MapPost("/users/register", async (UserDTO userDto, AppDbContext db, ILogger<UserEndpointsLogger> logger) =>
         {
             if (await db.Users.AnyAsync(u => u.Email == userDto.Email))
                 return Results.BadRequest(new { Message = "Email already exists." });
@@ -22,10 +22,10 @@ public static class UserEndpoints
             user.Username = userDto.Username;
             user.Email = userDto.Email;
             user.PasswordHash = hashedPassword;
-            // temporary role
+
             user.Role = user.Email == "admin@gmail.com" ? "Admin" : "User";
 
-            db.Users.Add(user);
+            await db.Users.AddAsync(user);
             await db.SaveChangesAsync();
 
             logger.LogInformation("New user registered: {Username} ({Email})", user.Username, user.Email);
@@ -50,7 +50,11 @@ public static class UserEndpoints
                 RefreshToken = await tokenService.GenerateAndSaveRefreshTokenAsync(user),
             };
 
-            return Results.Ok(new { Message = "Login successful." });
+            return Results.Ok(new { Message = "Login successful.", response });
         }).WithName("LoginUser").WithTags("Users").WithSummary("Login a user");
+    }
+
+    internal sealed class UserEndpointsLogger
+    {
     }
 }

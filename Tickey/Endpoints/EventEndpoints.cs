@@ -19,7 +19,7 @@ public static class EventEndpoints
 
             return Results.Ok(events);
 
-        }).WithName("GetAllEvents").WithTags("Events").WithSummary("Get all events");
+        }).RequireRateLimiting("Fixed").WithName("GetAllEvents").WithTags("Events").WithSummary("Get all events");
 
         app.MapGet("/events/{id:guid}", async (Guid id, AppDbContext db, CancellationToken cancellationToken) =>
         {
@@ -37,9 +37,9 @@ public static class EventEndpoints
 
             return eventItem is not null? Results.Ok(eventItem): Results.NotFound();
 
-        }).WithName("GetEventById").WithTags("Events").WithSummary("Get an event by ID");
+        }).RequireRateLimiting("user-role").WithName("GetEventById").WithTags("Events").WithSummary("Get an event by ID");
 
-        app.MapPost("/events", async (CreateEventDTO dto, AppDbContext db, ILogger logger) =>
+        app.MapPost("/events", async (CreateEventDTO dto, AppDbContext db, ILogger<EventEndpointsLogger> logger) =>
         {
             var eventItem = new Event
             {
@@ -62,9 +62,9 @@ public static class EventEndpoints
 
             return Results.Created($"/events/{eventItem.Id}", eventItem.Id);
 
-        }).RequireAuthorization("AdminOnly").WithName("CreateEvent").WithTags("Events").WithSummary("Create a new event");
+        }).RequireRateLimiting("Fixed").RequireAuthorization("AdminOnly").WithName("CreateEvent").WithTags("Events").WithSummary("Create a new event");
 
-        app.MapPut("/events/{id:guid}", async (Guid id, UpdateEventDTO dto, AppDbContext db, ILogger logger) =>
+        app.MapPut("/events/{id:guid}", async (Guid id, UpdateEventDTO dto, AppDbContext db, ILogger<EventEndpointsLogger> logger) =>
         {
             var eventItem = await db.Events.FindAsync(id);
 
@@ -98,9 +98,9 @@ public static class EventEndpoints
 
             return Results.Ok(response);
 
-        }).RequireAuthorization("AdminOnly").WithName("UpdateEvent").WithTags("Events").WithSummary("Update an event by ID");
+        }).RequireRateLimiting("Fixed").RequireAuthorization("AdminOnly").WithName("UpdateEvent").WithTags("Events").WithSummary("Update an event by ID");
 
-        app.MapDelete("/events/{id:guid}", async (Guid id, AppDbContext db, ILogger logger) =>
+        app.MapDelete("/events/{id:guid}", async (Guid id, AppDbContext db, ILogger<EventEndpointsLogger> logger) =>
         {
             var eventItem = await db.Events.FindAsync(id);
 
@@ -114,7 +114,11 @@ public static class EventEndpoints
 
             return Results.NoContent();
 
-        }).RequireAuthorization("AdminOnly").WithName("DeleteEvent").WithTags("Events").WithSummary("Delete an event by ID");
+        }).RequireRateLimiting("Fixed").RequireAuthorization("AdminOnly").WithName("DeleteEvent").WithTags("Events").WithSummary("Delete an event by ID");
 
+    }
+
+    internal sealed class EventEndpointsLogger
+    {
     }
 }
