@@ -34,6 +34,24 @@ public static class TicketEndpoints
 
         }).RequireAuthorization("UserOnly").WithName("GetTicketById").WithTags("Tickets").WithSummary("Get a ticket by ID");
 
+        app.MapPost("/tickets/buy", async (BuyTicketDTO dto, AppDbContext db, ILogger logger) =>
+        {
+            var ticket = await db.Tickets.FirstOrDefaultAsync(t => t.Id == dto.TicketId);
+            if (ticket is null)
+                return Results.NotFound("Ticket not found.");
+
+            if (dto.Quantity > ticket.QuantityAvailable)
+                return Results.BadRequest(new { Message = $"Only {ticket.QuantityAvailable} tickets are available for this ticket type." });
+
+            ticket.QuantityAvailable -= dto.Quantity;
+            ticket.QuantitySold += dto.Quantity;
+            await db.SaveChangesAsync();
+
+            logger.LogInformation("Ticket with ID: {TicketId} sold. Quantity sold: {QuantitySold}", ticket.Id, dto.Quantity);
+
+            return Results.Ok("Ticket purchased successfully.");
+        }).RequireAuthorization("UserOnly").WithName("BuyTicket").WithTags("Tickets").WithSummary("Buy a ticket");
+
         app.MapPost("/tickets", async (CreateTicketDTO dto, AppDbContext db, ILogger logger) =>
         {
             var @event = await db.Events.FirstOrDefaultAsync(e => e.Id == dto.EventId);
