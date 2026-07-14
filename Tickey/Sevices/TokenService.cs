@@ -32,7 +32,7 @@ public class TokenService
 
         var credentials = new SigningCredentials(
             key,
-            SecurityAlgorithms.HmacSha512Signature
+            SecurityAlgorithms.HmacSha256
         );
 
         var token = new JwtSecurityToken(

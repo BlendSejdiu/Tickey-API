@@ -8,6 +8,8 @@ using Tickey.Sevices;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddServiceDefaults();
+
 // metric, logging
 builder.Services.AddErrorHandlingAndLogs();
 
@@ -26,6 +28,8 @@ builder.Services.AddRateLimiting();
 builder.Services.DependentServices();
 
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
