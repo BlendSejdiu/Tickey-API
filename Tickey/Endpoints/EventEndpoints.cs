@@ -11,8 +11,7 @@ public static class EventEndpoints
                     e.Id,
                     e.Name,
                     e.Description,
-                    e.EventDate,
-                    e.EventTime,
+                    e.EventDateTime,
                     e.Location,
                     e.TotalTickets,
                     e.EventCategory)).AsNoTracking().ToListAsync(cancellationToken);
@@ -29,8 +28,7 @@ public static class EventEndpoints
                     e.Id,
                     e.Name,
                     e.Description,
-                    e.EventDate,
-                    e.EventTime,
+                    e.EventDateTime,
                     e.Location,
                     e.TotalTickets,
                     e.EventCategory)).FirstOrDefaultAsync(cancellationToken);
@@ -45,8 +43,7 @@ public static class EventEndpoints
             {
                 Name = dto.Name,
                 Description = dto.Description,
-                EventDate = DateTime.SpecifyKind(dto.EventDate, DateTimeKind.Utc),
-                EventTime = DateTime.SpecifyKind(dto.EventTime, DateTimeKind.Utc),
+                EventDateTime = dto.EventDateTime,
                 Location = dto.Location,
                 TotalTickets = dto.TotalTickets,
                 EventCategory = dto.EventCategory,
@@ -73,8 +70,7 @@ public static class EventEndpoints
 
             eventItem.Name = dto.Name ?? eventItem.Name;
             eventItem.Description = dto.Description ?? eventItem.Description;
-            eventItem.EventDate = dto.EventDate ?? eventItem.EventDate;
-            eventItem.EventTime = dto.EventTime ?? eventItem.EventTime;
+            eventItem.EventDateTime = dto.EventDateTime ?? eventItem.EventDateTime;
             eventItem.Location = dto.Location ?? eventItem.Location;
             eventItem.TotalTickets = dto.TotalTickets ?? eventItem.TotalTickets;
             eventItem.EventCategory = dto.EventCategory ?? eventItem.EventCategory;
@@ -90,8 +86,7 @@ public static class EventEndpoints
                 eventItem.Id,
                 eventItem.Name,
                 eventItem.Description,
-                eventItem.EventDate,
-                eventItem.EventTime,
+                eventItem.EventDateTime,
                 eventItem.Location,
                 eventItem.TotalTickets,
                 eventItem.EventCategory);

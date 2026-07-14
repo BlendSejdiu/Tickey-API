@@ -5,8 +5,7 @@ namespace Tickey.Models.DTO.EventDTOs;
 public record EventDTO(Guid Id,
                        string Name,
                        string Description,
-                       DateTime EventDate,
-                       DateTime EventTime,
+                       DateTime EventDateTime,
                        string Location,
                        int TotalTickets,
                        Category EventCategory

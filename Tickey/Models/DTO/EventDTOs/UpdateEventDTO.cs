@@ -4,8 +4,7 @@ namespace Tickey.Models.DTO.EventDTOs;
 
 public record UpdateEventDTO(string? Name,
                             string? Description,
-                            DateTime? EventDate,
-                            DateTime? EventTime,
+                            DateTime? EventDateTime,
                             string? Location,
                             int? TotalTickets,
                             Category? EventCategory);
