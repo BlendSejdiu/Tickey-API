@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="Tickey.AppHost/Tickey.AppHost.csproj" Id="a643fa54-b0b1-4856-821e-bf557a427fa3" />
+  <Project Path="Tickey.ServiceDefaults/Tickey.ServiceDefaults.csproj" />
   <Project Path="Tickey/Tickey.csproj" />
 </Solution>
